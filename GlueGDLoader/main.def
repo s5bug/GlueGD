@@ -1,0 +1,3 @@
+LIBRARY   XINPUT9_1_0
+EXPORTS
+   XInputGetState=_XInputGetState@8
