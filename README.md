@@ -15,8 +15,8 @@ DLL first.
 
 GlueGD then does two things. The first is it retrieves all the necessary
 symbols from the original `XINPUT9_1_0.dll` so that Geometry Dash thinks it
-still has a valid XInput driver. The second is GlueGD creates its own new
-thread that can fully control the game itself.
+still has a valid XInput driver. The second is that GlueGD creates its own new
+thread so that it can fully control the game.
 
 ## goals
 
