@@ -1,4 +1,4 @@
-/* <one line to give the program's name and a brief idea of what it does.>
+/* GlueGDLoader - A fake XInput DLL that loads GlueGD
  * Copyright (C) 2020 Aly Cerruti
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ XInputGetStateProc getStateProc = nullptr;
 #include <ImageHlp.h>
 #include <PathCch.h>
 
-using GlueRunProc = void (*)(DWORD geometryDashVersion);
+using GlueRunProc = void (*)(HMODULE glueHmod, DWORD geometryDashVersion);
 
 DWORD WINAPI entry(LPVOID lpParameter) {
     (void) lpParameter;
@@ -64,7 +64,7 @@ DWORD WINAPI entry(LPVOID lpParameter) {
     HMODULE glueDll = LoadLibraryW(glueDllPath);
     GlueRunProc glueRun = (GlueRunProc)GetProcAddress(glueDll, "run");
 
-    glueRun(gdCompileStamp);
+    glueRun(glueDll, gdCompileStamp);
 
     return 0;
 }

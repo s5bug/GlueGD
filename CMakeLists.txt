@@ -20,5 +20,6 @@ add_library(GlueGD SHARED
     GlueGD/main.cpp
 )
 target_compile_definitions(GlueGD PRIVATE -DUNICODE -D_UNICODE)
-target_include_directories(GlueGD PRIVATE)
-target_link_libraries(GlueGD)
+target_include_directories(GlueGD PRIVATE external/include)
+target_link_directories(GlueGD PRIVATE external/lib/win32)
+target_link_libraries(GlueGD cocos2dx cocos2dext)
