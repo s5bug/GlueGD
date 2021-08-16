@@ -7,13 +7,31 @@
 using XInputGetStateProc = DWORD (WINAPI *)(_In_ DWORD dwUserIndex, _Out_ void *pState);
 XInputGetStateProc getStateProc = nullptr;
 
+#include <libloaderapi.h>
+#include <ImageHlp.h>
+
 DWORD WINAPI entry(LPVOID lpParameter) {
     (void) lpParameter;
     FILE* con;
 
     AllocConsole();
     freopen_s(&con, "CONOUT$", "w", stdout);
-    std::printf("Incredible\n");
+    
+    DWORD gdCompileStamp;
+
+    {
+        char gdExePath[MAX_PATH];
+        GetModuleFileNameA(NULL, gdExePath, MAX_PATH);
+
+        LOADED_IMAGE gdImage;
+        MapAndLoad(gdExePath, NULL, &gdImage, FALSE, TRUE);
+
+        gdCompileStamp = gdImage.FileHeader->FileHeader.TimeDateStamp;
+
+        UnMapAndLoad(&gdImage);
+    }
+
+    printf("Geometry Dash Version: %d", gdCompileStamp);
 
     return 0;
 }
