@@ -1,5 +1,9 @@
+#include <array>
 #include <cstring>
 #include <cstdio>
+#include <locale>
+#include <codecvt>
+#include <string>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -9,20 +13,23 @@ XInputGetStateProc getStateProc = nullptr;
 
 #include <libloaderapi.h>
 #include <ImageHlp.h>
+#include <PathCch.h>
+
+using GlueRunProc = void (*)(DWORD geometryDashVersion);
 
 DWORD WINAPI entry(LPVOID lpParameter) {
     (void) lpParameter;
-    FILE* con;
+    // FILE* con;
 
-    AllocConsole();
-    freopen_s(&con, "CONOUT$", "w", stdout);
+    // AllocConsole();
+    // freopen_s(&con, "CONOUT$", "w", stdout);
+
+    char gdExePath[MAX_PATH];
+    GetModuleFileNameA(NULL, gdExePath, MAX_PATH);
     
     DWORD gdCompileStamp;
 
     {
-        char gdExePath[MAX_PATH];
-        GetModuleFileNameA(NULL, gdExePath, MAX_PATH);
-
         LOADED_IMAGE gdImage;
         MapAndLoad(gdExePath, NULL, &gdImage, FALSE, TRUE);
 
@@ -31,7 +38,17 @@ DWORD WINAPI entry(LPVOID lpParameter) {
         UnMapAndLoad(&gdImage);
     }
 
-    printf("Geometry Dash Version: %d", gdCompileStamp);
+    // printf("Geometry Dash Version: %d", gdCompileStamp);
+
+    wchar_t glueDllPath[MAX_PATH];
+    GetModuleFileNameW(NULL, glueDllPath, MAX_PATH);
+    PathCchRemoveFileSpec(glueDllPath, MAX_PATH);
+    PathCchCombine(glueDllPath, MAX_PATH, glueDllPath, L"GlueGD.dll");
+
+    HMODULE glueDll = LoadLibraryW(glueDllPath);
+    GlueRunProc glueRun = (GlueRunProc)GetProcAddress(glueDll, "run");
+
+    glueRun(gdCompileStamp);
 
     return 0;
 }
