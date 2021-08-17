@@ -14,67 +14,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include <algorithm>
 #include <cstdio>
+#include <cstdint>
+#include <cinttypes>
+#include <span>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <Psapi.h>
 
 #include <cocos2dx/cocos2d.h>
 
-#define WM_GEOMETRYDASH_WINDOW_FOUND_MSG (WM_APP + 0)
-#define WM_GEOMETRYDASH_WINDOW_SHOWN_MSG (WM_APP + 1)
+using CocosDirectorRunWithSceneProc = void (cocos2d::CCDirector::*)(cocos2d::CCScene* pScene);
 
-DWORD messageLoopThreadId = 0;
-HWND geometryDashWindow = NULL;
+void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, cocos2d::CCScene* pScene) {
+    (void) edx;
 
-void CALLBACK handleOpenedWindow(
-    HWINEVENTHOOK hWinEventHook,
-    DWORD event,
-    HWND hwnd,
-    LONG idObject,
-    LONG idChild,
-    DWORD idEventThread,
-    DWORD dwmsEventTime
-) {
-    (void) hWinEventHook;
-    (void) event;
-    (void) idChild;
-    (void) idEventThread;
-    (void) dwmsEventTime;
+    thisx->pushScene(pScene);
+    thisx->startAnimation();
 
-    if(idObject == OBJID_WINDOW) {
-        int windowTextLength = 1 + GetWindowTextLengthW(hwnd);
-        std::vector<wchar_t> windowText = std::vector<wchar_t>((size_t) windowTextLength);
-        GetWindowTextW(hwnd, windowText.data(), windowTextLength);
+    printf("Hello from Geometry Dash's main thread\n");
+    printf("The scene is %s\n", pScene->description());
 
-        if(wcscmp(L"Geometry Dash", windowText.data()) == 0) {
-            geometryDashWindow = hwnd;
-            PostThreadMessageW(messageLoopThreadId, WM_GEOMETRYDASH_WINDOW_FOUND_MSG, NULL, NULL);
-        }
-    }
-}
-
-void CALLBACK handleShownWindow(
-    HWINEVENTHOOK hWinEventHook,
-    DWORD event,
-    HWND hwnd,
-    LONG idObject,
-    LONG idChild,
-    DWORD idEventThread,
-    DWORD dwmsEventTime
-) {
-    (void) hWinEventHook;
-    (void) event;
-    (void) idChild;
-    (void) idEventThread;
-    (void) dwmsEventTime;
-
-    if(idObject == OBJID_WINDOW && geometryDashWindow == hwnd) {
-        PostThreadMessageW(messageLoopThreadId, WM_GEOMETRYDASH_WINDOW_SHOWN_MSG, NULL, NULL);
-    }
+    return;
 }
 
 extern "C" __declspec(dllexport) void run(HMODULE hmod, DWORD geometryDashVersion) {
+    (void) hmod;
+
     FILE* con;
 
     AllocConsole();
@@ -82,55 +50,54 @@ extern "C" __declspec(dllexport) void run(HMODULE hmod, DWORD geometryDashVersio
 
     printf("Geometry Dash Version: %d\n", geometryDashVersion);
 
-    messageLoopThreadId = GetCurrentThreadId();
+    HMODULE libcocos2d = NULL;
 
-    HWINEVENTHOOK windowListener = SetWinEventHook(
-        EVENT_OBJECT_CREATE, EVENT_OBJECT_CREATE,
-        hmod, handleOpenedWindow,
-        GetCurrentProcessId(), 0,
-        WINEVENT_INCONTEXT | WINEVENT_SKIPOWNTHREAD
-    );
+    HMODULE hMods[1024];
+    DWORD cbNeeded;
+    if(EnumProcessModules(GetCurrentProcess(), hMods, sizeof(hMods), &cbNeeded)) {
+        for(size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
+            HMODULE theModule = hMods[i];
 
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        if(msg.message == WM_GEOMETRYDASH_WINDOW_FOUND_MSG) {
-            break;
-        } else {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            wchar_t modulePath[MAX_PATH];
+            GetModuleFileNameW(theModule, modulePath, MAX_PATH);
+
+            wchar_t* moduleFileName = 1 + wcsrchr(modulePath, L'\\');
+            if(_wcsicmp(L"libcocos2d.dll", moduleFileName) == 0) {
+                libcocos2d = theModule;
+                break;
+            }
         }
     }
 
-    UnhookWinEvent(windowListener);
-
-    if(geometryDashWindow == NULL) {
-        printf("Failed to acquire Geometry Dash window. Stopping GlueGD.\n");
+    if(libcocos2d == NULL) {
+        printf("Failed to acquire libcocos2d module. Exiting GlueGD...\n");
         return;
     }
 
-    printf("Found window: %p\n", geometryDashWindow);
+    FARPROC runWithSceneProc = GetProcAddress(libcocos2d, "?runWithScene@CCDirector@cocos2d@@QAEXPAVCCScene@2@@Z");
+    uintptr_t runWithSceneAddr = reinterpret_cast<uintptr_t>(runWithSceneProc);
 
-    HWINEVENTHOOK windowShowListener = SetWinEventHook(
-        EVENT_OBJECT_SHOW, EVENT_OBJECT_SHOW,
-        hmod, handleShownWindow,
-        GetCurrentProcessId(), 0,
-        WINEVENT_INCONTEXT | WINEVENT_SKIPOWNTHREAD
-    );
+    printf("Address of runWithScene: %" PRIxPTR "\n", runWithSceneAddr);
 
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        if(msg.message == WM_GEOMETRYDASH_WINDOW_SHOWN_MSG) {
-            break;
-        } else {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+    std::vector<uint8_t> needle = { 0x55, 0x8B, 0xEC, 0x56, 0xFF };
+    uint8_t* runWithSceneData = reinterpret_cast<uint8_t*>(runWithSceneProc);
+
+    std::span<uint8_t> runWithSceneMethod(runWithSceneData, 0x20);
+    auto retLoc = std::search(runWithSceneMethod.begin(), runWithSceneMethod.end(), needle.begin(), needle.end());
+    if(retLoc == runWithSceneMethod.end()) {
+        printf("Failed to locate the hook location in libcocos2d. Exiting GlueGD...\n");
+        return;
     }
 
-    UnhookWinEvent(windowShowListener);
+    uintptr_t retLocAddr = reinterpret_cast<uintptr_t>(&(*retLoc));
+    uintptr_t cocosRunWithSceneHookAddr = reinterpret_cast<uintptr_t>(&cocosRunWithSceneHook);
+    uintptr_t offset = cocosRunWithSceneHookAddr - (retLocAddr + 0x5);
 
-    printf("Window shown\n");
+    std::vector<uint8_t> newCode = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
+    std::memcpy(newCode.data() + 1, &offset, sizeof(offset));
 
-    // TODO initialize ImGui and render _over_ the existing window: We don't
-    // want to render as part of GD's UI kit, we want to be able to fully steal
-    // events.
+    DWORD oldProtections;
+    VirtualProtect(&(*retLoc), 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
+    std::copy(newCode.begin(), newCode.end(), retLoc);
+    VirtualProtect(&(*retLoc), 0x5, oldProtections, &oldProtections);
 }
