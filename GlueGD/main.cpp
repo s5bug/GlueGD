@@ -37,6 +37,9 @@ void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, coc
     printf("Hello from Geometry Dash's main thread\n");
     printf("The scene is %s\n", pScene->description());
 
+    cocos2d::CCSize winSz = thisx->getWinSizeInPixels();
+    printf("The window size is %f %f", winSz.width, winSz.height);
+
     return;
 }
 
@@ -78,26 +81,14 @@ extern "C" __declspec(dllexport) void run(HMODULE hmod, DWORD geometryDashVersio
     uintptr_t runWithSceneAddr = reinterpret_cast<uintptr_t>(runWithSceneProc);
 
     printf("Address of runWithScene: %" PRIxPTR "\n", runWithSceneAddr);
-
-    std::vector<uint8_t> needle = { 0x55, 0x8B, 0xEC, 0x56, 0xFF };
-    uint8_t* runWithSceneData = reinterpret_cast<uint8_t*>(runWithSceneProc);
-
-    std::span<uint8_t> runWithSceneMethod(runWithSceneData, 0x20);
-    auto retLoc = std::search(runWithSceneMethod.begin(), runWithSceneMethod.end(), needle.begin(), needle.end());
-    if(retLoc == runWithSceneMethod.end()) {
-        printf("Failed to locate the hook location in libcocos2d. Exiting GlueGD...\n");
-        return;
-    }
-
-    uintptr_t retLocAddr = reinterpret_cast<uintptr_t>(&(*retLoc));
+    
     uintptr_t cocosRunWithSceneHookAddr = reinterpret_cast<uintptr_t>(&cocosRunWithSceneHook);
-    uintptr_t offset = cocosRunWithSceneHookAddr - (retLocAddr + 0x5);
-
     std::vector<uint8_t> newCode = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
+    uintptr_t offset = cocosRunWithSceneHookAddr - (runWithSceneAddr + newCode.size());
     std::memcpy(newCode.data() + 1, &offset, sizeof(offset));
 
     DWORD oldProtections;
-    VirtualProtect(&(*retLoc), 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
-    std::copy(newCode.begin(), newCode.end(), retLoc);
-    VirtualProtect(&(*retLoc), 0x5, oldProtections, &oldProtections);
+    VirtualProtect(runWithSceneProc, 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
+    std::memcpy(runWithSceneProc, newCode.data(), newCode.size());
+    VirtualProtect(runWithSceneProc, 0x5, oldProtections, &oldProtections);
 }
