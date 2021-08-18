@@ -27,18 +27,47 @@
 #include <cocos2dx/cocos2d.h>
 
 using CocosDirectorRunWithSceneProc = void (cocos2d::CCDirector::*)(cocos2d::CCScene* pScene);
+using CocosDirectorDrawSceneProc = void (cocos2d::CCDirector::*)();
+HMODULE libcocos2d = NULL;
+
+using CocosSwapBuffersWrapperProc = void (*)(GLFWwindow*);
+CocosSwapBuffersWrapperProc cocosSwapBuffersWrapper = NULL;
+
+void __fastcall cocosSwapBuffersHook(cocos2d::CCEGLView* thisx, void* edx) {
+    (void) edx;
+
+    GLFWwindow* window = thisx->getWindow();
+    if(window != NULL) {
+        cocosSwapBuffersWrapper(window);
+    }
+
+    return;
+}
 
 void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, cocos2d::CCScene* pScene) {
     (void) edx;
 
+    // We know for certain that we're not rendering a scene right now, so we can patch the method
+    // We also know that libcocos2d is non-null because it had to be non-null for us to get here
+    FARPROC swapBuffersProc = GetProcAddress(libcocos2d, "?swapBuffers@CCEGLView@cocos2d@@UAEXXZ");
+    uintptr_t swapBuffersAddr = reinterpret_cast<uintptr_t>(swapBuffersProc);
+    
+    uintptr_t cocosSwapBuffersHookAddr = reinterpret_cast<uintptr_t>(&cocosSwapBuffersHook);
+    std::vector<uint8_t> newCode = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
+    uintptr_t offset = cocosSwapBuffersHookAddr - (swapBuffersAddr + newCode.size());
+    std::memcpy(newCode.data() + 1, &offset, sizeof(offset));
+
+    DWORD oldProtections;
+    VirtualProtect(swapBuffersProc, 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
+    std::memcpy(swapBuffersProc, newCode.data(), newCode.size());
+    VirtualProtect(swapBuffersProc, 0x5, oldProtections, &oldProtections);
+
+     // TODO not use magic number
+    cocosSwapBuffersWrapper = reinterpret_cast<CocosSwapBuffersWrapperProc>(swapBuffersAddr + 0xB + 0x4BB65);
+
+    // Then let's run the original cocos2d code
     thisx->pushScene(pScene);
     thisx->startAnimation();
-
-    printf("Hello from Geometry Dash's main thread\n");
-    printf("The scene is %s\n", pScene->description());
-
-    cocos2d::CCSize winSz = thisx->getWinSizeInPixels();
-    printf("The window size is %f %f", winSz.width, winSz.height);
 
     return;
 }
@@ -52,8 +81,6 @@ extern "C" __declspec(dllexport) void run(HMODULE hmod, DWORD geometryDashVersio
     freopen_s(&con, "CONOUT$", "w", stdout);
 
     printf("Geometry Dash Version: %d\n", geometryDashVersion);
-
-    HMODULE libcocos2d = NULL;
 
     HMODULE hMods[1024];
     DWORD cbNeeded;

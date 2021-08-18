@@ -264,6 +264,11 @@ public:
     
     /// @} end of initializers
     
+    RT_ADD(
+        virtual void setChildColor(const ccColor3B&);
+        virtual void setChildOpacity(GLubyte);
+    )
+
     /// @{
     /// @name Functions inherited from CCTextureProtocol
     virtual void setTexture(CCTexture2D *texture);
@@ -274,11 +279,7 @@ public:
      */
     inline ccBlendFunc getBlendFunc(void) { return m_sBlendFunc; }
     /// @}
-    
-    //Robtop Modification
-    virtual void setChildColor(const _ccColor3B&);
-    virtual void setChildOpacity(unsigned char);
-    
+
     /// @{
     /// @name Functions inherited from CCNode
     virtual void setScaleX(float fScaleX);
@@ -347,8 +348,9 @@ public:
      
     /// @} end of BatchNode methods
     
-    //Robtop Modification:
-    virtual void refreshTextureRect(void);
+    RT_ADD(
+        virtual void refreshTextureRect(void);
+    )
     
     /// @{
     /// @name Texture methods
@@ -506,26 +508,11 @@ public:
     void setFlipY(bool bFlipY);
     
     /// @} End of Sprite properties getter/setters
-
-    //Robtop Modification:
-    float getBlVertexMod(void)const;
-    float getBrVertexMod(void)const;
-    bool getDontDraw(void)const;
-    float getTlVertexMod(void)const;
-    float getTrVertexMod(void)const;
-    CCPoint const& getUnflippedOffsetPosition(void);
-    void setBlVertexMod(float);
-    void setBrVertexMod(float);
-    void setDontDraw(bool);
-    void setTlVertexMod(float);
-    void setTrVertexMod(float);
-
-
     
 protected:
     void updateColor(void);
-    //Robtop Modification
-    virtual void setTextureCoords(const CCRect& rect);
+    RT_REMOVE(  virtual void setTextureCoords(CCRect rect);         )
+    RT_ADD(     virtual void setTextureCoords(const CCRect& rect);  )
     virtual void updateBlendFunc(void);
     virtual void setReorderChildDirtyRecursively(void);
     virtual void setDirtyRecursively(bool bValue);
@@ -569,21 +556,18 @@ protected:
 
     // image is flipped
     bool m_bFlipX;                              /// Whether the sprite is flipped horizaontally or not.
-    bool m_bFlipY;                              /// Whether the sprite is flipped vertically or not. //1BAh
+    bool m_bFlipY;                              /// Whether the sprite is flipped vertically or not.
 
-    //Robtop Modifications:
-    bool     m_bUnknown;  //0x1BB
-    uint32_t m_uUnknown0; //0x1BC
-    uint32_t m_uUnknown1; //0x1C0
-    uint32_t m_uUnknown2; //0x1C4
-    uint32_t m_uUnknown3; //0x1C8
-    uint32_t m_uUnknown4; //0x1CC
-    uint32_t m_uUnknown5; //0x1D0
-    uint32_t m_uUnknown6; //0x1D4
-    uint32_t m_uUnknown8; //0x1D8
-    uint8_t  m_uUnknown9; //0x1DC
-    uint32_t m_uUnknownA; //0x1E0
-
+    RT_ADD(
+        CC_SYNTHESIZE_NV(bool, m_bDontDraw, DontDraw);
+        CC_SYNTHESIZE_NV(float, m_fTlVertexMod, TlVertexMod);
+        CC_SYNTHESIZE_NV(float, m_fTrVertexMod, TrVertexMod);
+        CC_SYNTHESIZE_NV(float, m_fBlVertexMod, BlVertexMod);
+        CC_SYNTHESIZE_NV(float, m_fBrVertexMod, BrVertexMod);
+        PAD(16);
+        bool m_bUnknown;
+        int m_nUnknown;
+    )
 };
 
 

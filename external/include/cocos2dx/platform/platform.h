@@ -25,8 +25,8 @@ THE SOFTWARE.
 #ifndef __PLATFORM_H__
 #define __PLATFORM_H__
 
-#include "./CCThread.h"
-#include "./CCPlatformMacros.h"
+#include "CCThread.h"
+#include "CCPlatformMacros.h"
 
 NS_CC_BEGIN
 

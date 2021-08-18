@@ -5,6 +5,8 @@ project(GlueGD)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
+find_package(OpenGL REQUIRED)
+
 if(NOT MSVC)
     message(FATAL_ERROR "GlueGD must be built using MSVC.")
 endif()
@@ -22,4 +24,4 @@ add_library(GlueGD SHARED
 target_compile_definitions(GlueGD PRIVATE -DUNICODE -D_UNICODE)
 target_include_directories(GlueGD PRIVATE external/include)
 target_link_directories(GlueGD PRIVATE external/lib/win32)
-target_link_libraries(GlueGD cocos2dx cocos2dext)
+target_link_libraries(GlueGD OpenGL::GL cocos2dx cocos2dext)

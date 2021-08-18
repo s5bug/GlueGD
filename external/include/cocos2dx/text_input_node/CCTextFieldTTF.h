@@ -134,9 +134,8 @@ public:
     // properties
     //////////////////////////////////////////////////////////////////////////
 
-    //Robtop Modifications:
-    ROB_CC_SYNTHESIZE(CCTextFieldDelegate *, m_pDelegate, Delegate);
-    ROB_CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
+    CC_SYNTHESIZE(CCTextFieldDelegate *, m_pDelegate, Delegate);
+    CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
     virtual const ccColor3B& getColorSpaceHolder();
     virtual void setColorSpaceHolder(const ccColor3B& color);
 
@@ -158,7 +157,6 @@ protected:
 public:
     virtual void setSecureTextEntry(bool value);
     virtual bool isSecureTextEntry();
-
 protected:
     bool m_bSecureTextEntry;
 protected:

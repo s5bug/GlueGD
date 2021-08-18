@@ -170,11 +170,6 @@ public:
      * @lua NA
      */
     void setPriority(int nPriority, CCTouchDelegate *pDelegate);
-
-    // Robtop modification
-    void incrementForcePrio(int nPrio);
-
-    void decrementForcePrio(int nPrio);
     /**
      * @lua NA
      */
@@ -201,6 +196,10 @@ public:
      * @lua NA
      */
     CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
+
+    RT_ADD(
+        void incrementForcePrio(int priority);
+    )
 protected:
     void forceRemoveDelegate(CCTouchDelegate *pDelegate);
     void forceAddHandler(CCTouchHandler *pHandler, CCArray* pArray);
@@ -223,9 +222,10 @@ protected:
     // 4, 1 for each type of event
     struct ccTouchHandlerHelperData m_sHandlerHelperData[ccTouchMax];
 
-    // Robtop modification
-    CC_PROPERTY(bool, m_bForcePrio, ForcePrio);
-    CC_PROPERTY(int, m_nTargetPrio, TargetPrio);
+    RT_ADD(
+        CC_SYNTHESIZE_NV(bool, m_bForcePrio, ForcePrio);
+        CC_SYNTHESIZE_NV(int, m_nTargetPrio, TargetPrio);
+    )
 };
 
 // end of input group

@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 #include <map>
-#include "../platform/CCPlatformMacros.h"
+#include "./CCPlatformMacros.h"
 #include "../include/ccTypes.h"
 #include "../include/ccTypeInfo.h"
 
@@ -155,7 +155,8 @@ public:
 
      @since v2.1
      */
-    virtual std::string fullPathForFilename(const char* pszFileName);
+    RT_REMOVE(  virtual std::string fullPathForFilename(const char* pszFileName);       )
+    RT_ADD(     virtual std::string fullPathForFilename(const char* pszFileName, bool); )
     
     /**
      * Loads the filenameLookup dictionary from the contents of a filename.

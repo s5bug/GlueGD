@@ -1,9 +1,10 @@
 #ifndef __CC_APPLICATION_WIN32_H__
 #define __CC_APPLICATION_WIN32_H__
 
-#include "CCStdC.h"
-#include "platform/CCCommon.h"
-#include "platform/CCApplicationProtocol.h"
+#include "../../include/ccMacros.h"
+#include "./CCStdC.h"
+#include "../CCCommon.h"
+#include "../CCApplicationProtocol.h"
 #include <string>
 
 NS_CC_BEGIN
@@ -19,7 +20,8 @@ public:
     /**
     @brief    Run the message loop.
     */
-    virtual int run();
+    RT_REMOVE(  virtual int run();  )
+    RT_ADD(     virtual void gameDidSave(); )
 
     /**
     @brief    Get current applicaiton instance.
@@ -35,6 +37,13 @@ public:
      @brief Get target platform
      */
     virtual TargetPlatform getTargetPlatform();
+
+    RT_ADD(
+        virtual void openURL(const char* url);
+        virtual int run();
+        virtual void setupGLView();
+        virtual void platformShutdown();
+    )
 
     /**
      *  Sets the Resource root path.

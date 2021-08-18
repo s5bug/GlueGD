@@ -192,10 +192,6 @@ THE SOFTWARE.
 	#include "./platform/mac/CCStdC.h"
 #endif // CC_TARGET_PLATFORM == CC_PLATFORM_MAC
 
-
-
-
-
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
 	#include "./platform/linux/CCAccelerometer.h"
 	#include "./platform/linux/CCApplication.h"

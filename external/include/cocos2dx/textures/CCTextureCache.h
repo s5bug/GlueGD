@@ -100,10 +100,9 @@ public:
     * Otherwise it will return a reference of a previously loaded image.
     * Supported image extensions: .png, .bmp, .tiff, .jpeg, .pvr, .gif
     */
-    //Robtop Modification:
-    //CCTexture2D* addImage(const char* fileimage);
-    CCTexture2D* addImage(char const* filename, bool);
-    
+    RT_REMOVE( CCTexture2D* addImage(const char* fileimage); )
+
+    RT_ADD( CCTexture2D* addImage(const char* fileimage, bool ); )
 
     /* Returns a Texture2D object given a file image
     * If the file image was not previously loaded, it will create a new CCTexture2D object and it will return it.
@@ -193,7 +192,6 @@ public:
     It's only useful when the value of CC_ENABLE_CACHE_TEXTURE_DATA is 1
     */
     static void reloadAllTextures();
-
 };
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA

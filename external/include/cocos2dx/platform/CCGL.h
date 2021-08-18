@@ -1,14 +1,51 @@
 #include "./CCPlatformConfig.h"
 
-#ifndef __SELECT_CCGL_H__
-#define __SELECT_CCGL_H__
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+    #include "./ios/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_IOS
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+    #include "./android/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_BLACKBERRY)
+    #include "./blackberry/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_BLACKBERRY
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-#include "./win32/CCGL.h"
-#endif
+	#include "./win32/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
+	#include "./winrt/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WINRT
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
+	#include "./winrt/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WP8
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
-#include "./mac/CCGL.h"
-#endif
+	#include "./mac/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_MAC
 
-#endif
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+	#include "./linux/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_LINUX
+
+// MARMALADE CHANGE
+// Added for Marmalade support
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_MARMALADE)
+	#include "./Marmalade/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_LINUX
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_NACL)
+    #include "./nacl/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_EMSCRIPTEN)
+    #include "./emscripten/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_EMSCRIPTEN
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN)
+    #include "./tizen/CCGL.h"
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN

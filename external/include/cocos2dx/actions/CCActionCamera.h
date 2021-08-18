@@ -26,7 +26,7 @@ THE SOFTWARE.
 #ifndef __CCCAMERA_ACTION_H__
 #define __CCCAMERA_ACTION_H__
 
-#include "./CCActionInterval.h"
+#include "CCActionInterval.h"
 
 NS_CC_BEGIN
 

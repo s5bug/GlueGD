@@ -26,8 +26,8 @@ THE SOFTWARE.
 #ifndef __CCPROTOCOLS_H__
 #define __CCPROTOCOLS_H__
 
-#include "./ccTypes.h"
-#include "../textures/CCTexture2D.h"
+#include "ccTypes.h"
+#include "textures/CCTexture2D.h"
 #include <string>
 
 NS_CC_BEGIN

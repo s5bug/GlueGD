@@ -96,12 +96,6 @@ public:
     virtual void setOpacityModifyRGB(bool bValue);
     virtual bool isOpacityModifyRGB(void);
 
-    /**
-     * Rob modification
-     */
-    void resumeStroke();
-    void stopStroke();
-
     /** When fast mode is enabled, new points are added faster but with lower precision */
     inline bool isFastMode() { return m_bFastMode; }
     inline void setFastMode(bool bFastMode) { m_bFastMode = bFastMode; }

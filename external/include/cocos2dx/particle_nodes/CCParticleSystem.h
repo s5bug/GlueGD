@@ -236,8 +236,7 @@ protected:
     CC_PROPERTY(CCParticleBatchNode*, m_pBatchNode, BatchNode);
 
     // index of system in batch node array
-    //Robtop Modification:
-    ROB_CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
+    CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
 
     //true if scaled or rotated
     bool m_bTransformSystemDirty;
@@ -367,16 +366,8 @@ public:
     - kCCParticleModeGravity: uses gravity, speed, radial and tangential acceleration
     - kCCParticleModeRadius: uses radius movement + rotation
     */
-    CC_PROPERTY(int, m_nEmitterMode, EmitterMode) //0x210
-private:
-    //Robtop Modifications:
-    float m_fUnknown01; //0x214
-    float m_fUnknown02; //0x218
-    float m_fUnknown03; //0x21C
-    float m_fUnknown04; //0x220
-    float m_fUnknown05; //0x224
-    float m_fUnknown06; //0x228
-    uint32_t m_uUnknown7; //0x22C
+    CC_PROPERTY(int, m_nEmitterMode, EmitterMode)
+
 public:
     /**
      * @js ctor
@@ -440,13 +431,6 @@ public:
 
 protected:
     virtual void updateBlendFunc();
-public: 
-    //Robtop modifications
-    void loadDefaults(void);
-    void loadScaledDefaults(float);
-    void resumeSystem(void);
-    void saveDefaults(void);
-    
 };
 
 // end of particle_nodes group

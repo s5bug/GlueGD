@@ -25,8 +25,8 @@ THE SOFTWARE.
 #ifndef __CCMENU_H_
 #define __CCMENU_H_
 
-#include "./CCMenuItem.h"
-#include "../layers_scenes_transitions_nodes/CCLayer.h"
+#include "CCMenuItem.h"
+#include "layers_scenes_transitions_nodes/CCLayer.h"
 
 NS_CC_BEGIN
 

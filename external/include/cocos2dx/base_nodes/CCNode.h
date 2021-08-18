@@ -136,6 +136,10 @@ public:
      * @js ctor
      */
     CCNode(void);
+
+    RT_ADD(
+        CCNode(const CCNode&);
+    )
     
     /**
      * Default destructor
@@ -415,7 +419,6 @@ public:
      */
     virtual const CCPoint& getAnchorPointInPoints();
     
-    
     /**
      * Sets the untransformed size of the node.
      *
@@ -434,9 +437,8 @@ public:
      */
     virtual const CCSize& getContentSize() const;
 
-    //Robtop Modification:
-    virtual CCSize getScaledContentSize();
-    
+    RT_ADD(virtual CCSize getScaledContentSize(void); )
+
     /**
      * Sets whether the node is visible
      *
@@ -666,8 +668,8 @@ public:
      */
     virtual void removeFromParentAndCleanup(bool cleanup);
 
-    //Robtop Modification
-    virtual void removeMeAndCleanup();
+    RT_ADD( virtual void removeMeAndCleanup(void);  )
+
     /** 
      * Removes a child from the container with a cleanup
      *
@@ -787,8 +789,7 @@ public:
      *
      * @return A interger that identifies the node.
      */
-     //Robtop Modification
-    //virtual int getTag() const;
+    RT_REMOVE(  virtual int getTag() const; )
     /**
      * Changes the tag that is used to identify the node easily.
      *
@@ -796,9 +797,7 @@ public:
      *
      * @param A interger that indentifies the node.
      */
-    
-    //Robtop Modification
-    //virtual void setTag(int nTag);
+    RT_REMOVE(  virtual void setTag(int nTag);  )
     
     /**
      * Returns a custom user data pointer
@@ -1254,15 +1253,15 @@ public:
      * Returns the matrix that transform the node's (local) space coordinates into the parent's space coordinates.
      * The matrix is in Pixels.
      */
-    
-     //Robtop Modification
-    virtual const CCAffineTransform nodeToParentTransform(void);
+    RT_REMOVE(  virtual CCAffineTransform nodeToParentTransform(void);          )
+    RT_ADD(     virtual const CCAffineTransform nodeToParentTransform(void);    )
 
     /** 
      * Returns the matrix that transform parent's space coordinates to the node's (local) space coordinates.
      * The matrix is in Pixels.
      */
-    virtual const CCAffineTransform parentToNodeTransform(void);
+    RT_REMOVE(  virtual CCAffineTransform parentToNodeTransform(void);      )
+    RT_ADD(     virtual const CCAffineTransform parentToNodeTransform(void);)
 
     /** 
      * Returns the world affine transform matrix. The matrix is in Pixels.
@@ -1391,9 +1390,13 @@ public:
      */
     virtual void removeAllComponents();
     /// @} end of component functions
+    
+    RT_ADD(
+        virtual void updateTweenAction(float, const char*);
 
-    //Robtop Modification
-    virtual void updateTweenAction(float, char const*);
+        CCNode& operator=(const CCNode&);
+    )
+
 private:
     /// lazy allocs
     void childrenAlloc(void);
@@ -1443,7 +1446,7 @@ protected:
     CCArray *m_pChildren;               ///< array of children nodes
     CCNode *m_pParent;                  ///< weak reference to parent node
     
-    //int m_nTag;                       ///< a tag. Can be any number you assigned just to identify this node
+    RT_REMOVE(  int m_nTag; )                         ///< a tag. Can be any number you assigned just to identify this node
     
     void *m_pUserData;                  ///< A user assingned void pointer, Can be point to any cpp object
     CCObject *m_pUserObject;            ///< A user assigned CCObject

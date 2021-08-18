@@ -47,11 +47,11 @@ public:
     {}
 
     /** returns the current touch location in OpenGL coordinates */
-    inline CCPoint getLocation() const {return m_point;};
+    CCPoint getLocation() const;
     /** returns the previous touch location in OpenGL coordinates */
-    inline CCPoint getPreviousLocation() const {return m_prevPoint;};
+    CCPoint getPreviousLocation() const;
     /** returns the start touch location in OpenGL coordinates */
-    inline CCPoint getStartLocation() const {return m_startPoint;};
+    CCPoint getStartLocation() const;
     /** returns the delta of 2 current touches locations in screen coordinates */
     CCPoint getDelta() const;
     /** returns the current touch location in screen coordinates */

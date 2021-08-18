@@ -32,9 +32,13 @@ THE SOFTWARE.
 #include "../touch_dispatcher/CCTouchDelegateProtocol.h"
 #include "../platform/CCAccelerometerDelegate.h"
 #include "../keypad_dispatcher/CCKeypadDelegate.h"
+
+#ifdef RT_ADD
+    #include "../robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
+    #include "../robtop/mouse_dispatcher/CCMouseDelegate.h"
+#endif
+
 #include "../cocoa/CCArray.h"
-#include "../custom/Delegates/CCKeyboardDelegate.h"
-#include "../custom/Delegates/CCMouseDelegate.h"
 #ifdef EMSCRIPTEN
 #include "base_nodes/CCGLBufferedNode.h"
 #endif // EMSCRIPTEN
@@ -62,8 +66,8 @@ All features from CCNode are valid, plus the following new features:
 - It can receive iPhone Touches
 - It can receive Accelerometer input
 */
-class CC_DLL CCLayer : public CCNode, public CCTouchDelegate, public CCAccelerometerDelegate, public CCKeypadDelegate, 
-    public CCKeyboardDelegate, public CCMouseDelegate
+class CC_DLL CCLayer : public CCNode, public CCTouchDelegate, public CCAccelerometerDelegate, public CCKeypadDelegate
+    RT_ADD(, public CCKeyboardDelegate, public CCMouseDelegate)
 {
 public:
     /**
@@ -160,12 +164,14 @@ public:
     */
     virtual bool isKeypadEnabled();
     virtual void setKeypadEnabled(bool value);
-    
-    //Robtop Modifications:
-    virtual bool isKeyboardEnabled();
-    virtual void setKeyboardEnabled(bool value);
-    virtual bool isMouseEnabled();
-    virtual void setMouseEnabled(bool value);
+
+    RT_ADD(
+        virtual bool isKeyboardEnabled();
+        virtual void setKeyboardEnabled(bool value);
+
+        virtual bool isMouseEnabled();
+        virtual void setMouseEnabled(bool value);
+    )
 
     /** Register keypad events handler */
     void registerScriptKeypadHandler(int nHandler);
@@ -175,27 +181,30 @@ public:
     virtual void keyBackClicked(void);
     virtual void keyMenuClicked(void);
     
-    //Robtop Modification
-    virtual void keyDown(enumKeyCodes key);
+    RT_ADD(
+        void keyDown(enumKeyCodes);
+    )
     
     inline CCTouchScriptHandlerEntry* getScriptTouchHandlerEntry() { return m_pScriptTouchHandlerEntry; };
     inline CCScriptHandlerEntry* getScriptKeypadHandlerEntry() { return m_pScriptKeypadHandlerEntry; };
     inline CCScriptHandlerEntry* getScriptAccelerateHandlerEntry() { return m_pScriptAccelerateHandlerEntry; };
 protected:   
-    bool m_bTouchEnabled; //assume this is 0x100
-    bool m_bAccelerometerEnabled; //0x101
-    bool m_bKeypadEnabled;   //0x102
-    bool m_bKeyboardEnabled;//0x103
-    bool m_bMouseEnabled;   //0x104
+    bool m_bTouchEnabled;
+    bool m_bAccelerometerEnabled;
+    bool m_bKeypadEnabled;
+    RT_ADD(
+        bool m_bKeyboardEnabled;
+        bool m_bMouseEnabled;
+    )
     
 private:
     // Script touch events handler
-    CCTouchScriptHandlerEntry* m_pScriptTouchHandlerEntry; //0x108
-    CCScriptHandlerEntry* m_pScriptKeypadHandlerEntry;     //0x10C
-    CCScriptHandlerEntry* m_pScriptAccelerateHandlerEntry; //0x110
+    CCTouchScriptHandlerEntry* m_pScriptTouchHandlerEntry;
+    CCScriptHandlerEntry* m_pScriptKeypadHandlerEntry;
+    CCScriptHandlerEntry* m_pScriptAccelerateHandlerEntry;
     
-    int m_nTouchPriority; //0x114
-    ccTouchesMode m_eTouchMode; //0X118
+    int m_nTouchPriority;
+    ccTouchesMode m_eTouchMode;
     
     int  excuteScriptTouchHandler(int nEventType, CCTouch *pTouch);
     int  excuteScriptTouchHandler(int nEventType, CCSet *pTouches);

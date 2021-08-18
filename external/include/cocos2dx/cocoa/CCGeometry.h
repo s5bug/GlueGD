@@ -25,8 +25,8 @@ THE SOFTWARE.
 #ifndef __CCGEMETRY_H__
 #define __CCGEMETRY_H__
 
-#include "../platform/CCPlatformMacros.h"
-#include "./CCObject.h"
+#include "platform/CCPlatformMacros.h"
+#include "CCObject.h"
 #include <math.h>
 
 NS_CC_BEGIN
@@ -88,17 +88,15 @@ public:
      */
     CCPoint operator/(float a) const;
 
-
-    // my modification
-        inline CCPoint operator*(const CCPoint& right) const {return CCPoint(x*right.x, y*right.y);}
-        inline CCPoint operator/(const CCPoint& right) const {return CCPoint(x/right.x, y/right.y);}
-    //314
-
+HJ_ADD(
+    inline CCPoint operator*(const CCPoint& right) const {return CCPoint(x*right.x, y*right.y);}
+    inline CCPoint operator/(const CCPoint& right) const {return CCPoint(x/right.x, y/right.y);}
+)
     /**
      * @lua NA
      */
     void setPoint(float x, float y);
-    inline bool equals(const CCPoint& target) const {return target.x==x && target.y==y;}
+    bool equals(const CCPoint& target) const;
     
     /** @returns if points have fuzzy equality which means equal with some degree of variance.
      * @since v2.1.4
@@ -338,13 +336,13 @@ public:
 #define CCRectMake(x, y, width, height) CCRect((float)(x), (float)(y), (float)(width), (float)(height))
 
 
-const CCPoint CCPointZero;
+const CCPoint CCPointZero = CCPointMake(0,0);
 
 /* The "zero" size -- equivalent to CCSizeMake(0, 0). */ 
-const CCSize CCSizeZero;
+const CCSize CCSizeZero = CCSizeMake(0,0);
 
 /* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */ 
-const CCRect CCRectZero;
+const CCRect CCRectZero = CCRectMake(0,0,0,0);
 
 // end of data_structure group
 /// @}

@@ -125,9 +125,7 @@ private:
     unsigned int addChildHelper(CCParticleSystem* child, int z, int aTag);
     void updateBlendFunc(void);
     /** the texture atlas used for drawing the quads */
-    
-    //Robtop Modification:
-    ROB_CC_SYNTHESIZE(CCTextureAtlas*, m_pTextureAtlas, TextureAtlas);
+    CC_SYNTHESIZE(CCTextureAtlas*, m_pTextureAtlas, TextureAtlas);
 private:
     /** the blend function used for drawing the quads */
     ccBlendFunc m_tBlendFunc;

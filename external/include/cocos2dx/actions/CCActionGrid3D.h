@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef __ACTION_CCGRID3D_ACTION_H__
 #define __ACTION_CCGRID3D_ACTION_H__
 
-#include "./CCActionGrid.h"
+#include "CCActionGrid.h"
 
 NS_CC_BEGIN
 

@@ -27,9 +27,9 @@ THE SOFTWARE.
 #ifndef __ACTIONS_CCACTION_H__
 #define __ACTIONS_CCACTION_H__
 
-#include "../cocoa/CCObject.h"
-#include "../cocoa/CCGeometry.h"
-#include "../platform/CCPlatformMacros.h"
+#include "cocoa/CCObject.h"
+#include "cocoa/CCGeometry.h"
+#include "platform/CCPlatformMacros.h"
 
 NS_CC_BEGIN
 
@@ -108,6 +108,8 @@ public:
 
     inline int getTag(void) { return m_nTag; }
     inline void setTag(int nTag) { m_nTag = nTag; }
+    
+    RT_ADD(void setSpeedMod(float mod);)
 
 public:
     /** Create an action */
@@ -122,6 +124,7 @@ protected:
     CCNode    *m_pTarget;
     /** The action tag. An identifier of the action */
     int     m_nTag;
+    RT_ADD(float m_fSpeedMod;)
 };
 
 /** 

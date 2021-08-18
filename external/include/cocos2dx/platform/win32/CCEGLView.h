@@ -25,10 +25,12 @@ THE SOFTWARE.
 #ifndef __CC_EGLVIEW_WIN32_H__
 #define __CC_EGLVIEW_WIN32_H__
 
-#include "CCStdC.h"
-#include "platform/CCCommon.h"
-#include "cocoa/CCGeometry.h"
-#include "platform/CCEGLViewProtocol.h"
+#include "./CCStdC.h"
+#include "../CCCommon.h"
+#include "../../cocoa/CCGeometry.h"
+#include "../../platform/CCEGLViewProtocol.h"
+
+#include "../../robtop/glfw/glfw3.h"
 
 NS_CC_BEGIN
 
@@ -36,53 +38,47 @@ typedef LRESULT (*CUSTOM_WND_PROC)(UINT message, WPARAM wParam, LPARAM lParam, B
 
 class CCEGL;
 
-class CC_DLL CCEGLView : public CCEGLViewProtocol
+class CC_DLL CCEGLView : public CCEGLViewProtocol RT_ADD(, public CCObject)
 {
-protected:
-    //Robtop Modification
-    virtual ~CCEGLView();
 public:
     CCEGLView();
+    RT_REMOVE(  virtual ~CCEGLView();   )
 
     /* override functions */
     virtual bool isOpenGLReady();
     virtual void end();
     virtual void swapBuffers();
     virtual void setFrameSize(float width, float height);
-	
-    //Robtop Modification
-    //virtual void setEditorFrameSize(float width, float height,HWND hWnd); 
+	RT_REMOVE(  virtual void setEditorFrameSize(float width, float height,HWND hWnd);   )
     virtual void setIMEKeyboardState(bool bOpen);
 
     void setMenuResource(LPCWSTR menu);
     void setWndProc(CUSTOM_WND_PROC proc);
 
 protected:
-    //Robtop Modification
-    //virtual bool Create();
+    RT_REMOVE(  virtual bool Create();  )
 public:
     bool initGL();
     void destroyGL();
 
-    //Robtop Modification
-    //virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+    RT_REMOVE(  virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam); )
 
 	void setHWnd(HWND hWnd);
     // win32 platform function
-    HWND getHWnd();
-    
-    //Robtop Modification
-    void resize(int width, int height);
+    RT_REMOVE( HWND getHWnd(); )
+    RT_REMOVE(  virtual void resize(int width, int height); )
+    RT_ADD(     void resizeWindow(int width, int height);   )
 	
     /* 
      * Set zoom factor for frame. This method is for debugging big resolution (e.g.new ipad) app on desktop.
      */
     void setFrameZoomFactor(float fZoomFactor);
 	float getFrameZoomFactor();
-    
-    //Robtop Modification
-    void centerWindow();
+    RT_REMOVE(  virtual void centerWindow();    )
+    RT_ADD(     void centerWindow();            )
 
+    RT_ADD(     void showCursor(bool state);    )
+	    
     typedef void (*LPFN_ACCELEROMETER_KEYHOOK)( UINT message,WPARAM wParam, LPARAM lParam );
     void setAccelerometerKeyHook( LPFN_ACCELEROMETER_KEYHOOK lpfnAccelerometerKeyHook );
 
@@ -94,20 +90,48 @@ public:
     @brief    get the shared main open gl window
     */
     static CCEGLView* sharedOpenGLView();
+    RT_ADD( static CCEGLView* create(const std::string&);   )
+
+    RT_ADD(
+        //actually this is my function but i dont wanna make a new macro for it
+        inline CCPoint getMousePosition() { return { m_fMouseX, m_fMouseY }; }
+
+        void toggleFullScreen(bool fullscreen);
+
+        GLFWwindow* getWindow(void) const;
+    )
 
 protected:
 	static CCEGLView* s_pEglView;
     bool m_bCaptured;
+    RT_REMOVE(
     HWND m_hWnd;
     HDC  m_hDC;
     HGLRC m_hRC;
     LPFN_ACCELEROMETER_KEYHOOK m_lpfnAccelerometerKeyHook;
+    )
     bool m_bSupportTouch;
-
+    RT_ADD(
+        bool m_bInRetinaMonitor;
+        bool m_bRetinaEnabled;
+        int m_nRetinaFactor;
+        bool m_bCursorHidden;
+    )
+    RT_REMOVE(
     LPCWSTR m_menu;
     CUSTOM_WND_PROC m_wndproc;
-
+    )
     float m_fFrameZoomFactor;
+    RT_ADD(
+        GLFWwindow* m_pMainWindow;
+        GLFWmonitor* m_pPrimaryMonitor;
+        CCSize m_obWindowedSize;
+        float m_fMouseX;
+        float m_fMouseY;
+        bool m_bIsFullscreen;
+        bool m_bShouldHideCursor;
+        bool m_bShouldCallGLFinish;
+    )
 };
 
 NS_CC_END

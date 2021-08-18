@@ -5,7 +5,19 @@
 #include <string.h>
 #endif
 
-// #define CC_DLL      __declspec(dllexport)
+
+
+/*#if defined(_USRDLL)
+    #define CC_DLL     __declspec(dllexport)
+#else         // use a DLL library 
+    #define CC_DLL     __declspec(dllimport)
+#endif*/
+
+/** CC_DLL
+* Since we are linking a lib containing the functions
+* provided by libcocos2d.dll used by GeometryDash.exe, 
+* we do not need to define this macro to do anything.
+*/
 #define CC_DLL
 
 #include <assert.h>

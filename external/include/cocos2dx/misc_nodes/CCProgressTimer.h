@@ -103,17 +103,13 @@ public:
 public:
     /** Creates a progress timer with the sprite as the shape the timer goes through */
     static CCProgressTimer* create(CCSprite* sp);
-    
-    //Robtop Modification
-    void updateColor(void);
-
 protected:
     ccTex2F textureCoordFromAlphaPoint(CCPoint alpha);
     ccVertex2F vertexFromAlphaPoint(CCPoint alpha);
     void updateProgress(void);
     void updateBar(void);
     void updateRadial(void);
-    //void updateColor(void);
+    void updateColor(void);
     CCPoint boundaryTexCoord(char index);
 
 protected:
@@ -141,9 +137,7 @@ protected:
      *    For example you want a left to right bar but not have the height stay 100%
      *    Set the rate to be ccp(0,1); and set the midpoint to = ccp(0,.5f);
      */
-    
-     //Robtop Modification
-    ROB_CC_SYNTHESIZE(CCPoint, m_tBarChangeRate, BarChangeRate);
+    CC_SYNTHESIZE(CCPoint, m_tBarChangeRate, BarChangeRate);
 
     bool m_bReverseDirection;
 };

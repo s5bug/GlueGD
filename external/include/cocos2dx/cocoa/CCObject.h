@@ -26,11 +26,16 @@ THE SOFTWARE.
 #define __CCOBJECT_H__
 
 #include "./CCDataVisitor.h"
+#include "../include/ccMacros.h"
 
 #ifdef EMSCRIPTEN
 #include <GLES2/gl2.h>
 #endif // EMSCRIPTEN
-class DS_Dictionary;
+
+RT_ADD(
+    class DS_Dictionary;
+)
+
 NS_CC_BEGIN
 
 /**
@@ -38,12 +43,19 @@ NS_CC_BEGIN
  * @{
  */
 
+RT_ADD(
+    typedef enum {
+        kCCObjectTypePlayLayer = 5,
+        kCCObjectTypeLevelEditorLayer = 6,
+        kCCObjectTypeMenuLayer = 15,
+    } CCObjectType;
+)
+
 class CCZone;
 class CCObject;
 class CCNode;
 class CCEvent;
-enum  CCObjectType {
-};
+
 /**
  * @js NA
  * @lua NA
@@ -65,37 +77,56 @@ public:
     // Lua reference id
     int                 m_nLuaID;
 protected:
-    unsigned int        m_uTag;
+    // the object's tag
+    RT_ADD( int m_nTag; )
     // count of references
     unsigned int        m_uReference;
-
-    CCObjectType        m_CCObjectType;
-    
     // count of autorelease
     unsigned int        m_uAutoReleaseCount;
 
-    unsigned int        m_uPadding;
+    RT_ADD(
+        int m_eObjType;
+        int m_nUnknown;
+    )
 public:
     CCObject(void);
+    RT_ADD( CCObject(const CCObject&);  )
     /**
      *  @lua NA
      */
     virtual ~CCObject(void);
+
+    RT_ADD( CCObject& operator=(const CCObject&);   )
     
     void release(void);
     void retain(void);
     CCObject* autorelease(void);
     CCObject* copy(void);
     bool isSingleReference(void) const;
-    unsigned int retainCount(void) {return m_uReference;}
+    unsigned int retainCount(void) const;
     virtual bool isEqual(const CCObject* pObject);
 
     virtual void acceptVisitor(CCDataVisitor &visitor);
+
     virtual void update(float dt) {CC_UNUSED_PARAM(dt);};
-    virtual void encodeWithCoder(DS_Dictionary*); //Robtop Modification
-    virtual bool canEncode();    //Robtop Modification
-    virtual int  getTag() const; //Robtop Modification
-    virtual void setTag(int);    //Robtop Modification
+    
+    RT_ADD(
+        virtual void encodeWithCoder(DS_Dictionary*);
+
+        static CCObject* createWithCoder(DS_Dictionary*);
+        
+        virtual bool canEncode();
+
+        CCObjectType getObjType() const;
+        
+        virtual int getTag() const;
+
+        virtual void setTag(int nTag);
+       
+        void setObjType(CCObjectType);
+    
+        //i have no idea if vtable function order matters so 
+    )
 
     friend class CCAutoreleasePool;
 };
