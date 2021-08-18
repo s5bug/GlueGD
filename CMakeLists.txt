@@ -20,8 +20,16 @@ target_link_libraries(XINPUT9_1_0 ImageHlp PathCch)
 
 add_library(GlueGD SHARED
     GlueGD/main.cpp
+
+    GlueGD/imgui/imgui.cpp
+    GlueGD/imgui/imgui_demo.cpp
+    GlueGD/imgui/imgui_draw.cpp
+    GlueGD/imgui/imgui_tables.cpp
+    GlueGD/imgui/imgui_widgets.cpp
+    GlueGD/imgui/backends/imgui_impl_win32.cpp
+    GlueGD/imgui/backends/imgui_impl_opengl3.cpp
 )
-target_compile_definitions(GlueGD PRIVATE -DUNICODE -D_UNICODE)
+target_compile_definitions(GlueGD PRIVATE -DUNICODE -D_UNICODE -DIMGUI_IMPL_OPENGL_ES2)
 target_include_directories(GlueGD PRIVATE external/include)
 target_link_directories(GlueGD PRIVATE external/lib/win32)
-target_link_libraries(GlueGD OpenGL::GL cocos2dx cocos2dext)
+target_link_libraries(GlueGD OpenGL::GL cocos2dx cocos2dext glew32)

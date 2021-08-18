@@ -26,6 +26,14 @@
 
 #include <cocos2dx/cocos2d.h>
 
+#ifndef IMGUI_IMPL_OPENGL_ES2
+#error "GlueGD only works with IMGUI_IMPL_OPENGL_ES2 defined"
+#endif
+
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_win32.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
+
 using CocosDirectorRunWithSceneProc = void (cocos2d::CCDirector::*)(cocos2d::CCScene* pScene);
 using CocosDirectorDrawSceneProc = void (cocos2d::CCDirector::*)();
 HMODULE libcocos2d = NULL;
@@ -33,10 +41,33 @@ HMODULE libcocos2d = NULL;
 using CocosSwapBuffersWrapperProc = void (*)(GLFWwindow*);
 CocosSwapBuffersWrapperProc cocosSwapBuffersWrapper = NULL;
 
+HDC adaptGlfwWindowHdc(GLFWwindow* window) {
+    uintptr_t windowAddr = reinterpret_cast<uintptr_t>(window);
+    // TODO why does RobTop have an HDC instead of an HWND in the Window struct??
+    uintptr_t hdcAddr = windowAddr + 0x244;
+    HDC* hdcPtr = reinterpret_cast<HDC*>(hdcAddr);
+
+    return *hdcPtr;
+}
+
 void __fastcall cocosSwapBuffersHook(cocos2d::CCEGLView* thisx, void* edx) {
     (void) edx;
 
     GLFWwindow* window = thisx->getWindow();
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::EndFrame();
+    ImGui::Render();
+
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glFlush();
+
     if(window != NULL) {
         cocosSwapBuffersWrapper(window);
     }
@@ -76,6 +107,15 @@ void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, coc
         VirtualProtect(swapBuffersProc, 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
         std::memcpy(swapBuffersProc, newCode.data(), newCode.size());
         VirtualProtect(swapBuffersProc, 0x5, oldProtections, &oldProtections);
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void) io;
+
+        HDC hDC = adaptGlfwWindowHdc(thisx->getOpenGLView()->getWindow());
+        HWND hwnd = WindowFromDC(hDC);
+        ImGui_ImplWin32_Init(hwnd);
+        ImGui_ImplOpenGL3_Init();
     } else {
         printf("Couldn't locate glfwSwapBuffers. Not hooking GUI...\n");
     }
@@ -97,27 +137,7 @@ extern "C" __declspec(dllexport) void run(HMODULE hmod, DWORD geometryDashVersio
 
     printf("Geometry Dash Version: %d\n", geometryDashVersion);
 
-    HMODULE hMods[1024];
-    DWORD cbNeeded;
-    if(EnumProcessModules(GetCurrentProcess(), hMods, sizeof(hMods), &cbNeeded)) {
-        for(size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
-            HMODULE theModule = hMods[i];
-
-            wchar_t modulePath[MAX_PATH];
-            GetModuleFileNameW(theModule, modulePath, MAX_PATH);
-
-            wchar_t* moduleFileName = 1 + wcsrchr(modulePath, L'\\');
-            if(_wcsicmp(L"libcocos2d.dll", moduleFileName) == 0) {
-                libcocos2d = theModule;
-                break;
-            }
-        }
-    }
-
-    if(libcocos2d == NULL) {
-        printf("Failed to acquire libcocos2d module. Exiting GlueGD...\n");
-        return;
-    }
+    libcocos2d = GetModuleHandleW(L"libcocos2d.dll");
 
     FARPROC runWithSceneProc = GetProcAddress(libcocos2d, "?runWithScene@CCDirector@cocos2d@@QAEXPAVCCScene@2@@Z");
     uintptr_t runWithSceneAddr = reinterpret_cast<uintptr_t>(runWithSceneProc);
