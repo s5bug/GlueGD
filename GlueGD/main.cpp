@@ -51,19 +51,34 @@ void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, coc
     // We also know that libcocos2d is non-null because it had to be non-null for us to get here
     FARPROC swapBuffersProc = GetProcAddress(libcocos2d, "?swapBuffers@CCEGLView@cocos2d@@UAEXXZ");
     uintptr_t swapBuffersAddr = reinterpret_cast<uintptr_t>(swapBuffersProc);
-    
-    uintptr_t cocosSwapBuffersHookAddr = reinterpret_cast<uintptr_t>(&cocosSwapBuffersHook);
-    std::vector<uint8_t> newCode = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
-    uintptr_t offset = cocosSwapBuffersHookAddr - (swapBuffersAddr + newCode.size());
-    std::memcpy(newCode.data() + 1, &offset, sizeof(offset));
+    uint8_t* swapBuffersData = reinterpret_cast<uint8_t*>(swapBuffersAddr);
 
-    DWORD oldProtections;
-    VirtualProtect(swapBuffersProc, 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
-    std::memcpy(swapBuffersProc, newCode.data(), newCode.size());
-    VirtualProtect(swapBuffersProc, 0x5, oldProtections, &oldProtections);
+    std::span<uint8_t> swapBuffersCode = std::span(swapBuffersData, 0x20);
+    std::vector<uint8_t> needle = { 0x50 /* PUSH EAX */, 0xE8 /* CALL */ };
+    auto ccallLoc = std::search(swapBuffersCode.begin(), swapBuffersCode.end(), needle.begin(), needle.end());
 
-     // TODO not use magic number
-    cocosSwapBuffersWrapper = reinterpret_cast<CocosSwapBuffersWrapperProc>(swapBuffersAddr + 0xB + 0x4BB65);
+    if(ccallLoc != swapBuffersCode.end()) {
+        // Point to the CALL instruction
+        uint8_t* ccallPtr = 1 + &(*ccallLoc);
+        uintptr_t ccallAddr = reinterpret_cast<uintptr_t>(ccallPtr);
+
+        uintptr_t cocosSwapBuffersWrapperOffset;
+        std::memcpy(&cocosSwapBuffersWrapperOffset, ccallPtr + 1, sizeof(uintptr_t));
+        // We take (callInstruction + callOperand + callLength)
+        cocosSwapBuffersWrapper = reinterpret_cast<CocosSwapBuffersWrapperProc>(ccallAddr + cocosSwapBuffersWrapperOffset + 0x05);
+
+        uintptr_t cocosSwapBuffersHookAddr = reinterpret_cast<uintptr_t>(&cocosSwapBuffersHook);
+        std::vector<uint8_t> newCode = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
+        uintptr_t offset = cocosSwapBuffersHookAddr - (swapBuffersAddr + newCode.size());
+        std::memcpy(newCode.data() + 1, &offset, sizeof(offset));
+
+        DWORD oldProtections;
+        VirtualProtect(swapBuffersProc, 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
+        std::memcpy(swapBuffersProc, newCode.data(), newCode.size());
+        VirtualProtect(swapBuffersProc, 0x5, oldProtections, &oldProtections);
+    } else {
+        printf("Couldn't locate glfwSwapBuffers. Not hooking GUI...\n");
+    }
 
     // Then let's run the original cocos2d code
     thisx->pushScene(pScene);
