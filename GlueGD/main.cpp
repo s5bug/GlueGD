@@ -45,6 +45,7 @@ CocosSwapBuffersWrapperProc cocosSwapBuffersWrapper = NULL;
 using CocosPollEventsWrapperProc = void (*)();
 CocosPollEventsWrapperProc cocosPollEventsWrapper = NULL;
 
+// For updating to newer versions: check usages of GDI32.SwapBuffers in libcocos2d
 HDC adaptGlfwWindowHdc(GLFWwindow* window) {
     uintptr_t windowAddr = reinterpret_cast<uintptr_t>(window);
     // TODO why does RobTop have an HDC instead of an HWND in the Window struct??

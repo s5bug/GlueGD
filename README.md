@@ -20,7 +20,7 @@ thread so that it can fully control the game.
 
 ## goals
 
-- [ ] Injecting an imGui Interface
+- [x] Injecting an imGui Interface
 - [ ] Reading/Writing Memory
 - [ ] Reading/Writing Code
   - [ ] Supporting the Mega Hack v5+v6 JSONs
