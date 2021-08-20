@@ -31,9 +31,9 @@
 #error "GlueGD only works with IMGUI_IMPL_OPENGL_ES2 defined"
 #endif
 
-#include "imgui/imgui.h"
-#include "imgui/backends/imgui_impl_win32.h"
-#include "imgui/backends/imgui_impl_opengl3.h"
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_win32.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
 
 using CocosDirectorRunWithSceneProc = void (cocos2d::CCDirector::*)(cocos2d::CCScene* pScene);
 using CocosDirectorDrawSceneProc = void (cocos2d::CCDirector::*)();

@@ -5,7 +5,11 @@ project(GlueGD)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
+include_directories(external/include)
+
 find_package(OpenGL REQUIRED)
+add_subdirectory(external/subproject/imgui)
+add_subdirectory(external/subproject/lua543)
 
 if(NOT MSVC)
     message(FATAL_ERROR "GlueGD must be built using MSVC.")
@@ -19,17 +23,10 @@ target_compile_definitions(XINPUT9_1_0 PRIVATE -DUNICODE -D_UNICODE)
 target_link_libraries(XINPUT9_1_0 ImageHlp PathCch)
 
 add_library(GlueGD SHARED
+    GlueGD/glue.cpp
     GlueGD/main.cpp
-
-    GlueGD/imgui/imgui.cpp
-    GlueGD/imgui/imgui_demo.cpp
-    GlueGD/imgui/imgui_draw.cpp
-    GlueGD/imgui/imgui_tables.cpp
-    GlueGD/imgui/imgui_widgets.cpp
-    GlueGD/imgui/backends/imgui_impl_win32.cpp
-    GlueGD/imgui/backends/imgui_impl_opengl3.cpp
 )
 target_compile_definitions(GlueGD PRIVATE -DUNICODE -D_UNICODE -DIMGUI_IMPL_OPENGL_ES2)
-target_include_directories(GlueGD PRIVATE external/include)
+target_include_directories(GlueGD PRIVATE external/subproject/imgui external/subproject/lua543)
 target_link_directories(GlueGD PRIVATE external/lib/win32)
-target_link_libraries(GlueGD OpenGL::GL cocos2dx cocos2dext glew32)
+target_link_libraries(GlueGD OpenGL::GL cocos2dx cocos2dext ImGui lua54)
