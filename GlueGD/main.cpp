@@ -35,6 +35,10 @@
 #include <imgui/backends/imgui_impl_win32.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
+#include "glue.hpp"
+Glue glue;
+std::vector<std::filesystem::path> moduleSearchPaths;
+
 using CocosDirectorRunWithSceneProc = void (cocos2d::CCDirector::*)(cocos2d::CCScene* pScene);
 using CocosDirectorDrawSceneProc = void (cocos2d::CCDirector::*)();
 HMODULE libcocos2d = NULL;
@@ -242,10 +246,25 @@ void patchSwapBuffers(cocos2d::CCDirector* thisx) {
     }
 }
 
+void searchModulePath(std::filesystem::path modulePath) {
+    for(const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(modulePath)) {
+        const std::filesystem::path& p = entry;
+        if(entry.is_regular_file()) glue.loadModule(p);
+        else if(entry.is_directory()) {
+            std::filesystem::path index = p / "index.lua";
+            if(std::filesystem::is_regular_file(index)) {
+                glue.loadModule(index);
+            }
+        }
+    }
+}
+
 void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, cocos2d::CCScene* pScene) {
     (void) edx;
 
     patchSwapBuffers(thisx);
+
+    std::for_each(moduleSearchPaths.begin(), moduleSearchPaths.end(), searchModulePath);
 
     // Then let's run the original cocos2d code
     thisx->pushScene(pScene);
@@ -254,8 +273,10 @@ void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, coc
     return;
 }
 
-extern "C" __declspec(dllexport) void run(HMODULE hmod, DWORD geometryDashVersion) {
+extern "C" __declspec(dllexport) void run(DWORD geometryDashVersion, HMODULE hmod, std::vector<std::filesystem::path> p_moduleSearchPaths) {
     (void) hmod;
+
+    moduleSearchPaths = p_moduleSearchPaths;
 
     FILE* con;
 

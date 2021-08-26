@@ -17,9 +17,11 @@
 #include <array>
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 #include <locale>
-#include <codecvt>
 #include <string>
+#include <ztd/text.hpp>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -31,14 +33,12 @@ XInputGetStateProc getStateProc = nullptr;
 #include <ImageHlp.h>
 #include <PathCch.h>
 
-using GlueRunProc = void (*)(HMODULE glueHmod, DWORD geometryDashVersion);
+#include <sol/sol.hpp>
+
+using GlueRunProc = void (*)(DWORD geometryDashVersion, HMODULE glueHmod, std::vector<std::filesystem::path> moduleSearchPaths);
 
 DWORD WINAPI entry(LPVOID lpParameter) {
     (void) lpParameter;
-    // FILE* con;
-
-    // AllocConsole();
-    // freopen_s(&con, "CONOUT$", "w", stdout);
 
     char gdExePath[MAX_PATH];
     GetModuleFileNameA(NULL, gdExePath, MAX_PATH);
@@ -54,17 +54,77 @@ DWORD WINAPI entry(LPVOID lpParameter) {
         UnMapAndLoad(&gdImage);
     }
 
-    // printf("Geometry Dash Version: %d", gdCompileStamp);
+    std::filesystem::path configPath;
+    wchar_t env_cfg[MAX_PATH];
+    if(GetEnvironmentVariable(L"GLUEGD_CONFIG", env_cfg, MAX_PATH) != 0) {
+        configPath = env_cfg;
+    } else {
+        configPath = std::filesystem::current_path() / "gluegd_config.lua";
+    }
 
-    wchar_t glueDllPath[MAX_PATH];
-    GetModuleFileNameW(NULL, glueDllPath, MAX_PATH);
-    PathCchRemoveFileSpec(glueDllPath, MAX_PATH);
-    PathCchCombine(glueDllPath, MAX_PATH, glueDllPath, L"GlueGD.dll");
+    sol::state lua;
+    lua.open_libraries(sol::lib::base);
+    sol::protected_function_result loadConfig = lua.do_file(configPath.string());
+    if(!loadConfig.valid()) {
+        std::stringstream message;
+        message << "Lua config at " << configPath.string() << " invalid! Error from Lua:" << std::endl << std::endl;
 
-    HMODULE glueDll = LoadLibraryW(glueDllPath);
+        sol::error err = loadConfig;
+        std::string what = err.what();
+        message << what << std::endl << std::endl;
+
+        message << "GlueGD will not load." << std::endl;
+
+        std::string uMessage = message.str();
+        std::wstring winMessage = ztd::text::transcode(uMessage, ztd::text::compat_utf8, ztd::text::wide_utf16, ztd::text::replacement_handler);
+
+        MessageBoxW(NULL, winMessage.c_str(), L"GlueGDLoader Error", MB_OK);
+
+        return 1;
+    }
+
+    sol::protected_function configFunc = loadConfig;
+
+    sol::protected_function_result configResult = configFunc(gdCompileStamp, std::filesystem::current_path().string(), configPath.parent_path().string());
+
+    if(!configResult.valid()) {
+        std::stringstream message;
+        message << "Lua config at " << configPath.string() << " errored! Error from Lua:" << std::endl << std::endl;
+
+        sol::error err = configResult;
+        std::string what = err.what();
+        message << what << std::endl << std::endl;
+
+        message << "GlueGD will not load." << std::endl;
+
+        std::string uMessage = message.str();
+        std::wstring winMessage = ztd::text::transcode(uMessage, ztd::text::compat_utf8, ztd::text::wide_utf16, ztd::text::replacement_handler);
+
+        MessageBoxW(NULL, winMessage.c_str(), L"GlueGDLoader Config Error", MB_OK);
+
+        return 1;
+    }
+
+    sol::table config = configResult;
+
+    std::string dllPath = config["dll_path"];
+    std::wstring wDllPath = ztd::text::transcode(dllPath, ztd::text::compat_utf8, ztd::text::wide_utf16, ztd::text::replacement_handler);
+
+    HMODULE glueDll = LoadLibraryW(wDllPath.c_str());
     GlueRunProc glueRun = (GlueRunProc)GetProcAddress(glueDll, "run");
 
-    glueRun(glueDll, gdCompileStamp);
+    std::vector<std::string> moduleSearchPathStrings = config["module_search_path"].get<std::vector<std::string>>();
+    std::vector<std::filesystem::path> moduleSearchPaths;
+
+    std::transform(
+        moduleSearchPathStrings.begin(), moduleSearchPathStrings.end(),
+        std::back_inserter(moduleSearchPaths),
+        [](std::string pathString) {
+            return std::filesystem::path(pathString);
+        }
+    );
+
+    glueRun(gdCompileStamp, glueDll, moduleSearchPaths);
 
     return 0;
 }
