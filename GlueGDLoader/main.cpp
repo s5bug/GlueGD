@@ -25,6 +25,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <wil/stl.h>
+#include <wil/win32_helpers.h>
 
 using XInputGetStateProc = DWORD (WINAPI *)(_In_ DWORD dwUserIndex, _Out_ void *pState);
 XInputGetStateProc getStateProc = nullptr;
@@ -40,14 +42,17 @@ using GlueRunProc = void (*)(DWORD geometryDashVersion, HMODULE glueHmod, std::v
 DWORD WINAPI entry(LPVOID lpParameter) {
     (void) lpParameter;
 
-    char gdExePath[MAX_PATH];
-    GetModuleFileNameA(NULL, gdExePath, MAX_PATH);
+    std::wstring gdExePath;
+    wil::GetModuleFileNameW(NULL, gdExePath);
     
     DWORD gdCompileStamp;
 
     {
+        // TODO: reimplement ImageHlp to use wstring
+        std::string ansiGdExePath = ztd::text::transcode(gdExePath, ztd::text::wide_utf16, ztd::text::ascii, ztd::text::replacement_handler);
+
         LOADED_IMAGE gdImage;
-        MapAndLoad(gdExePath, NULL, &gdImage, FALSE, TRUE);
+        MapAndLoad(ansiGdExePath.c_str(), NULL, &gdImage, FALSE, TRUE);
 
         gdCompileStamp = gdImage.FileHeader->FileHeader.TimeDateStamp;
 
@@ -55,8 +60,8 @@ DWORD WINAPI entry(LPVOID lpParameter) {
     }
 
     std::filesystem::path configPath;
-    wchar_t env_cfg[MAX_PATH];
-    if(GetEnvironmentVariable(L"GLUEGD_CONFIG", env_cfg, MAX_PATH) != 0) {
+    std::wstring env_cfg;
+    if(wil::TryGetEnvironmentVariableW(L"GLUEGD_CONFIG", env_cfg) != 0) {
         configPath = env_cfg;
     } else {
         configPath = std::filesystem::current_path() / "gluegd_config.lua";
@@ -136,13 +141,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved) {
 
     switch (fdwReason) {
         case DLL_PROCESS_ATTACH: {
-            char dllPath[MAX_PATH];
-            GetSystemDirectoryA(dllPath, MAX_PATH);
-            if(strcat_s(dllPath, MAX_PATH, "\\XINPUT9_1_0.dll") != 0) {
-                return FALSE;
-            }
+            std::wstring systemDirectory;
+            wil::GetSystemDirectoryW(systemDirectory);
+            std::filesystem::path dllPath = std::filesystem::path(systemDirectory) / "XINPUT9_1_0.dll";
 
-            xinput910 = LoadLibraryA(dllPath);
+            xinput910 = LoadLibraryW(dllPath.wstring().c_str());
             getStateProc = (XInputGetStateProc)GetProcAddress(xinput910, "XInputGetState");
 
             if (CreateThread(nullptr, 0, entry, nullptr, 0, nullptr) == nullptr) {
