@@ -41,7 +41,7 @@ add_library(lua54 SHARED
 )
 target_compile_definitions(lua54 PRIVATE LUA_BUILD_AS_DLL)
 
-add_library(luac STATIC
+add_executable(luac
     luac.c
 )
 target_link_libraries(luac lua54)
