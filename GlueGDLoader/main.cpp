@@ -44,6 +44,8 @@ DWORD WINAPI entry(LPVOID lpParameter) {
 
     std::wstring gdExePath;
     wil::GetModuleFileNameW(NULL, gdExePath);
+
+    std::filesystem::path gdExeDir = std::filesystem::path(gdExePath).parent_path();
     
     DWORD gdCompileStamp;
 
@@ -90,7 +92,7 @@ DWORD WINAPI entry(LPVOID lpParameter) {
 
     sol::protected_function configFunc = loadConfig;
 
-    sol::protected_function_result configResult = configFunc(gdCompileStamp, std::filesystem::current_path().string(), configPath.parent_path().string());
+    sol::protected_function_result configResult = configFunc(gdCompileStamp, gdExeDir.string(), configPath.parent_path().string());
 
     if(!configResult.valid()) {
         std::stringstream message;
