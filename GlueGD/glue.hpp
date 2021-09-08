@@ -24,7 +24,7 @@
 
 // Module represents what's returned from the Lua, which is location-independent
 struct Module {
-    sol::protected_function on_load;
+    sol::protected_function on_enable;
 };
 
 template<typename Handler>
@@ -48,13 +48,13 @@ struct ModuleEntry : Module {
 class Glue {
     sol::state lua;
     // Even though the order doesn't matter, we want a sorted map for UX.
-    std::map<std::string, ModuleEntry> modules;
+    std::map<std::string, ModuleEntry> m_modules;
 
 public:
     Glue();
 
-    void discoverModule(std::string name, std::filesystem::path load_from);
-    void loadModule(std::string name);
+    void load_module(std::string name, std::filesystem::path load_from);
+    void enable_module(std::string name);
 
-    const std::map<std::string, ModuleEntry>& discoveredModules() const;
+    const std::map<std::string, ModuleEntry>& modules() const;
 };

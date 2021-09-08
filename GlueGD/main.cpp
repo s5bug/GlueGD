@@ -65,7 +65,7 @@ void moduleManagementWindow() {
         return;
     }
 
-    for(const auto &[name, module] : glue.discoveredModules()) {
+    for(const auto &[name, module] : glue.modules()) {
         ImGui::TextUnformatted(name.c_str());
     }
 
@@ -265,11 +265,11 @@ void searchModulePath(std::filesystem::path modulePath) {
         const std::filesystem::path& p = entry;
         std::string module_name = p.stem().string();
         if(entry.is_regular_file()) {
-            glue.discoverModule(module_name, p);
+            glue.load_module(module_name, p);
         } else if(entry.is_directory()) {
             std::filesystem::path index = p / "index.lua";
             if(std::filesystem::is_regular_file(index)) {
-                glue.discoverModule(module_name, index);
+                glue.load_module(module_name, index);
             }
         }
     }

@@ -2,5 +2,5 @@
 type config <- int -> string -> string -> { dll_path : string, module_search_path : list string }
 
 type mod <- {
-    on_load : () -> ()
+    on_enable : () -> ()
 }

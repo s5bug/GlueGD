@@ -31,10 +31,10 @@ bool sol_lua_check(
 
     sol::table& table = *try_table;
 
-    auto try_on_load = table["on_load"];
-    if(!try_on_load.valid()) return false;
-    sol::optional<sol::protected_function> try_on_load_fn = try_on_load;
-    if(!try_on_load_fn) return false;
+    auto try_on_enable = table["on_enable"];
+    if(!try_on_enable.valid()) return false;
+    sol::optional<sol::protected_function> try_on_enable_fn = try_on_enable;
+    if(!try_on_enable_fn) return false;
 
     return true;
 }
@@ -48,10 +48,10 @@ Module sol_lua_get(
     tracking.use(1);
     sol::table t = sol::stack::get<sol::table>(L, absolute_index);
 
-    sol::protected_function on_load = t["on_load"];
+    sol::protected_function on_enable = t["on_enable"];
 
     return Module {
-        .on_load = on_load,
+        .on_enable = on_enable,
     };
 }
 
@@ -59,27 +59,27 @@ Glue::Glue() : lua() {
     lua.open_libraries(sol::lib::base);
 }
 
-void Glue::discoverModule(std::string name, std::filesystem::path load_from) {
-    sol::protected_function_result moduleResult = lua.do_file(load_from.string());
-    if(moduleResult.valid()) {
-        Module mod = moduleResult;
+void Glue::load_module(std::string name, std::filesystem::path load_from) {
+    sol::protected_function_result module_result = lua.do_file(load_from.string());
+    if(module_result.valid()) {
+        Module mod = module_result;
         ModuleEntry entry = { { mod }, load_from };
-        modules[name] = entry;
+        m_modules[name] = entry;
     } else {
-        sol::error err = moduleResult;
+        sol::error err = module_result;
         printf("Lua error in %s: %s\n", load_from.string().c_str(), err.what());
     }
 }
 
-void Glue::loadModule(std::string name) {
-    if(modules.contains(name)) {
-        Module m = modules[name];
-        m.on_load();
+void Glue::enable_module(std::string name) {
+    if(m_modules.contains(name)) {
+        Module m = m_modules[name];
+        m.on_enable();
     } else {
         printf("Tried to load module %s, but no such module was discovered!\n", name.c_str());
     }
 }
 
-const std::map<std::string, ModuleEntry>& Glue::discoveredModules() const {
-    return modules;
+const std::map<std::string, ModuleEntry>& Glue::modules() const {
+    return m_modules;
 }
