@@ -79,3 +79,7 @@ void Glue::loadModule(std::string name) {
         printf("Tried to load module %s, but no such module was discovered!\n", name.c_str());
     }
 }
+
+const std::map<std::string, ModuleEntry>& Glue::discoveredModules() const {
+    return modules;
+}

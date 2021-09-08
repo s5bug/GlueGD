@@ -59,6 +59,19 @@ HDC adaptGlfwWindowHdc(GLFWwindow* window) {
     return *hdcPtr;
 }
 
+void moduleManagementWindow() {
+    if(!ImGui::Begin("Glue Modules", nullptr, 0)) {
+        ImGui::End();
+        return;
+    }
+
+    for(const auto &[name, module] : glue.discoveredModules()) {
+        ImGui::TextUnformatted(name.c_str());
+    }
+
+    ImGui::End();
+}
+
 void __fastcall cocosSwapBuffersHook(cocos2d::CCEGLView* thisx, void* edx) {
     (void) edx;
 
@@ -69,6 +82,7 @@ void __fastcall cocosSwapBuffersHook(cocos2d::CCEGLView* thisx, void* edx) {
     ImGui::NewFrame();
 
     ImGui::ShowDemoWindow();
+    moduleManagementWindow();
 
     ImGui::EndFrame();
     ImGui::Render();
