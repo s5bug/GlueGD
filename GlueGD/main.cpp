@@ -249,11 +249,13 @@ void patchSwapBuffers(cocos2d::CCDirector* thisx) {
 void searchModulePath(std::filesystem::path modulePath) {
     for(const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(modulePath)) {
         const std::filesystem::path& p = entry;
-        if(entry.is_regular_file()) glue.loadModule(p);
-        else if(entry.is_directory()) {
+        std::string module_name = p.stem().string();
+        if(entry.is_regular_file()) {
+            glue.discoverModule(module_name, p);
+        } else if(entry.is_directory()) {
             std::filesystem::path index = p / "index.lua";
             if(std::filesystem::is_regular_file(index)) {
-                glue.loadModule(index);
+                glue.discoverModule(module_name, index);
             }
         }
     }
@@ -263,8 +265,6 @@ void __fastcall cocosRunWithSceneHook(cocos2d::CCDirector* thisx, void* edx, coc
     (void) edx;
 
     patchSwapBuffers(thisx);
-
-    std::for_each(moduleSearchPaths.begin(), moduleSearchPaths.end(), searchModulePath);
 
     // Then let's run the original cocos2d code
     thisx->pushScene(pScene);
@@ -287,6 +287,8 @@ extern "C" __declspec(dllexport) void run(DWORD geometryDashVersion, HMODULE hmo
 
     libcocos2d = GetModuleHandleW(L"libcocos2d.dll");
 
+    // runWithScene is only ever called once throughout GD's lifetime
+    // We know that once it has been called, the window will be ready
     FARPROC runWithSceneProc = GetProcAddress(libcocos2d, "?runWithScene@CCDirector@cocos2d@@QAEXPAVCCScene@2@@Z");
     uintptr_t runWithSceneAddr = reinterpret_cast<uintptr_t>(runWithSceneProc);
 
@@ -301,4 +303,7 @@ extern "C" __declspec(dllexport) void run(DWORD geometryDashVersion, HMODULE hmo
     VirtualProtect(runWithSceneProc, 0x5, PAGE_EXECUTE_READWRITE, &oldProtections);
     std::memcpy(runWithSceneProc, newCode.data(), newCode.size());
     VirtualProtect(runWithSceneProc, 0x5, oldProtections, &oldProtections);
+
+    // Discover all the available modules
+    std::for_each(moduleSearchPaths.begin(), moduleSearchPaths.end(), searchModulePath);
 }

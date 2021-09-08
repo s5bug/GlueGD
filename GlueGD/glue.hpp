@@ -16,14 +16,41 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
+#include <unordered_map>
 
 #include <sol/sol.hpp>
 
+// Module represents what's returned from the Lua, which is location-independent
+struct Module {
+    sol::protected_function on_load;
+};
+
+template<typename Handler>
+bool sol_lua_check(
+    sol::types<Module>, lua_State* L,
+    int index, Handler&& handler,
+    sol::stack::record& tracking
+);
+
+Module sol_lua_get(
+    sol::types<Module>, lua_State* L,
+    int index, sol::stack::record& tracking
+);
+
+// Module entry represents what's stored, containing additional state data that
+// assists with reloads, code patches, etc.
+struct ModuleEntry : Module {
+    std::filesystem::path loaded_from;
+};
+
 class Glue {
     sol::state lua;
+    std::unordered_map<std::string, ModuleEntry> modules;
 
 public:
     Glue();
 
-    void loadModule(std::filesystem::path module);
+    void discoverModule(std::string name, std::filesystem::path load_from);
+    void loadModule(std::string name);
 };

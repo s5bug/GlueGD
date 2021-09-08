@@ -5,7 +5,7 @@ project(Lua)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
-add_library(lua54 SHARED
+set(luaobj
     lapi.c
     lcode.c
     lctype.c
@@ -39,12 +39,17 @@ add_library(lua54 SHARED
     lutf8lib.c
     linit.c
 )
+
+add_library(lualib STATIC ${luaobj})
+target_compile_definitions(lualib PRIVATE LUA_BUILD_AS_DLL)
+
+add_library(lua54 SHARED ${luaobj})
 target_compile_definitions(lua54 PRIVATE LUA_BUILD_AS_DLL)
 
 add_executable(luac
     luac.c
 )
-target_link_libraries(luac lua54)
+target_link_libraries(luac lualib)
 
 add_executable(lua
     lua.c
