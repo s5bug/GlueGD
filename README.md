@@ -5,13 +5,12 @@ to any existing Geometry Dash files or an external injector or launcher.
 
 ## how it works
 
-Most game engines that are built on DirectInput or XInput have a flaw in them
-where they will look in the process directory for the needed DLLs before
-correctly looking in System32. Geometry Dash is no different: the game engine
-it is built on looks for an `XINPUT9_1_0.dll`, which is normally found properly
-in System32. However, GlueGD creates its own `XINPUT9_1_0.dll` that can live in
-the same folder as Geometry Dash. This causes Geometry Dash to find GlueGD's
-DLL first.
+Windows applications search their own directory before searching System32 for
+system libraries. Geometry Dash searches for `XINPUT9_1_0.dll`. We construct a
+replacement DLL that injects our own code while manually opening the system's
+XInput and forwarding Geometry Dash's XInput calls to the original DLL. In this
+way, we can passively inject code without requiring the modification of any
+existing game files.
 
 GlueGD then does two things. The first is it retrieves all the necessary
 symbols from the original `XINPUT9_1_0.dll` so that Geometry Dash thinks it
