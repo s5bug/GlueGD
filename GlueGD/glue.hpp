@@ -17,7 +17,6 @@
 
 #include <filesystem>
 #include <map>
-#include <ranges>
 #include <string>
 
 #include <sol/sol.hpp>

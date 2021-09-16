@@ -22,19 +22,25 @@ bool sol_lua_check(
     int index, Handler&& handler,
     sol::stack::record& tracking
 ) {
+    constexpr sol::type expected = sol::type::table;
     int absolute_index = lua_absindex(L, index);
 
     tracking.use(1);
     sol::optional<sol::table> try_table = sol::stack::check_get<sol::table>(L, absolute_index, handler);
 
-    if(!try_table) return false;
-
+    if (!try_table) {
+        sol::type received = sol::type_of(L, absolute_index);
+        handler(L, index, expected, received, "a module must be a table");
+        return false;
+    }
     sol::table& table = *try_table;
 
     auto try_on_enable = table["on_enable"];
-    if(!try_on_enable.valid()) return false;
-    sol::optional<sol::protected_function> try_on_enable_fn = try_on_enable;
-    if(!try_on_enable_fn) return false;
+    if(!try_on_enable.is<sol::protected_function>()) {
+        sol::type received = try_on_enable.get_type();
+        handler(L, index, expected, received, "the module table must contain an on_enable, and it must be a function");
+        return false;
+    }
 
     return true;
 }
