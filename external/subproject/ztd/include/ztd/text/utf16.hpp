@@ -141,8 +141,8 @@ namespace ztd { namespace text {
 				using _Result = __txt_detail::__reconstruct_decode_result_t<_InputRange, _OutputRange, state>;
 				constexpr bool __call_error_handler = !is_ignorable_error_handler_v<_UErrorHandler>;
 
-				auto __init   = ranges::ranges_adl::adl_begin(::std::forward<_InputRange>(__input));
-				auto __inlast = ranges::ranges_adl::adl_end(::std::forward<_InputRange>(__input));
+				auto __init   = ranges::ranges_adl::adl_begin(__input);
+				auto __inlast = ranges::ranges_adl::adl_end(__input);
 				if constexpr (__call_error_handler) {
 					if (__init == __inlast) {
 						// an exhausted sequence is fine
@@ -181,7 +181,7 @@ namespace ztd { namespace text {
 				const code_unit& __lead = __units[0];
 				ranges::advance(__init);
 
-				if (!__txt_detail::__is_surrogate(__lead)) {
+				if (!__ztd_idk_detail_is_surrogate(__lead)) {
 					*__outit = static_cast<code_point>(__lead);
 					ranges::advance(::std::move(__outit));
 					return _Result(ranges::reconstruct(::std::in_place_type<_UInputRange>, ::std::move(__init),
@@ -191,7 +191,7 @@ namespace ztd { namespace text {
 						__s, encoding_error::ok);
 				}
 				if constexpr (__call_error_handler) {
-					if (!__txt_detail::__is_lead_surrogate(__lead)) {
+					if (!__ztd_idk_detail_is_lead_surrogate(__lead)) {
 						__self_t __self {};
 						return __error_handler(__self,
 							_Result(ranges::reconstruct(::std::in_place_type<_UInputRange>, ::std::move(__init),
@@ -219,7 +219,7 @@ namespace ztd { namespace text {
 				const code_unit& __trail = __units[1];
 				ranges::advance(__init);
 				if constexpr (__call_error_handler) {
-					if (!__txt_detail::__is_trail_surrogate(__trail)) {
+					if (!__ztd_idk_detail_is_trail_surrogate(__trail)) {
 						__self_t __self {};
 						return __error_handler(__self,
 							_Result(ranges::reconstruct(::std::in_place_type<_UInputRange>, ::std::move(__init),
@@ -230,7 +230,7 @@ namespace ztd { namespace text {
 							::ztd::span<code_unit, 2>(__units.data(), 2), ::ztd::span<code_point, 0>());
 					}
 				}
-				*__outit = static_cast<code_point>(__txt_detail::__utf16_combine_surrogates(
+				*__outit = static_cast<code_point>(__ztd_idk_detail_utf16_combine_surrogates(
 					static_cast<char16_t>(__lead), static_cast<char16_t>(__trail)));
 				ranges::advance(::std::move(__outit));
 
@@ -305,7 +305,7 @@ namespace ztd { namespace text {
 				ranges::advance(__init);
 
 				if constexpr (__call_error_handler) {
-					if (__point > __txt_detail::__last_code_point) {
+					if (__point > __ztd_idk_detail_last_unicode_code_point) {
 						__self_t __self {};
 						return __error_handler(__self,
 							_Result(ranges::reconstruct(::std::in_place_type<_UInputRange>, ::std::move(__init),
@@ -318,17 +318,17 @@ namespace ztd { namespace text {
 					}
 				}
 
-				if (__point <= __txt_detail::__last_bmp_value) {
+				if (__point <= __ztd_idk_detail_last_bmp_value) {
 					*__outit = static_cast<char16_t>(__point);
 					ranges::advance(__outit);
 				}
 				else {
-					auto __normal = __point - __txt_detail::__normalizing_value;
-					auto __lead   = __txt_detail::__first_lead_surrogate
-						+ ((__normal & __txt_detail::__lead_surrogate_bitmask)
-						     >> __txt_detail::__lead_shifted_bits);
-					auto __trail = __txt_detail::__first_trail_surrogate
-						+ (__normal & __txt_detail::__trail_surrogate_bitmask);
+					auto __normal = __point - __ztd_idk_detail_normalizing_value;
+					auto __lead   = __ztd_idk_detail_first_lead_surrogate
+						+ ((__normal & __ztd_idk_detail_lead_surrogate_bitmask)
+						     >> __ztd_idk_detail_lead_shifted_bits);
+					auto __trail = __ztd_idk_detail_first_trail_surrogate
+						+ (__normal & __ztd_idk_detail_trail_surrogate_bitmask);
 
 					code_unit __lead16  = static_cast<code_unit>(static_cast<char16_t>(__lead));
 					code_unit __trail16 = static_cast<code_unit>(static_cast<char16_t>(__trail));

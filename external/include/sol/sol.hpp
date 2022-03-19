@@ -23174,6 +23174,13 @@ namespace sol {
 			return 1;
 		}
 
+		template <typename T>
+		bool is() const {
+			typedef decltype(get<T>()) U;
+			optional<U> option = this->get<optional<U>>();
+			return option.has_value();
+		}
+
 		type get_type() const {
 			type t = type::none;
 			auto pp = stack::push_pop(tbl);

@@ -127,7 +127,7 @@ namespace ztd { namespace text {
 				this->_M_reset_state(__desc);
 				constexpr ::std::size_t __max_input_size = 5;
 				// Are we going to a Unicode encoding?
-				if (!__idk_detail::__is_unicode_encoding_name(__to_name.base()) || __from_size > __max_input_size) {
+				if (!::ztd::is_unicode_encoding_name(__to_name.base()) || __from_size > __max_input_size) {
 					return true;
 				}
 				// Congratulations, welcome to the hell that is the GNU / libc implementation of iconv!
@@ -287,8 +287,8 @@ namespace ztd { namespace text {
 
 
 			bool contains_unicode_encoding() const noexcept {
-				return __idk_detail::__is_unicode_encoding_name(this->_M_from_name)
-					&& __idk_detail::__is_unicode_encoding_name(this->_M_to_name);
+				return ::ztd::is_unicode_encoding_name(this->_M_from_name)
+					&& ::ztd::is_unicode_encoding_name(this->_M_to_name);
 			}
 
 			//////
@@ -649,6 +649,11 @@ namespace ztd { namespace text {
 				"present!");
 
 		public:
+			//////
+			/// @brief Constructors a no-op basic_iconv encoding.
+			///
+			/// @remarks Internal: do not use directly under any circumstances!
+			//////
 			__basic_iconv_no(c_string_view, c_string_view = "UTF-32") noexcept {
 			}
 		};

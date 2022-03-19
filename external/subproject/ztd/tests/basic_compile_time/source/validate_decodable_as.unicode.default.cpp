@@ -49,9 +49,6 @@ inline namespace ztd_text_tests_basic_compile_time_validate_decodable_as_unicode
 			static_assert(ztd::text::validate_decodable_as(ztd::tests::w_unicode_sequence_truth_native_endian));
 		}
 #endif
-		static_assert(ztd::text::validate_decodable_as(ztd::tests::u8_unicode_sequence_truth_native_endian));
-		static_assert(ztd::text::validate_decodable_as(ztd::tests::u16_unicode_sequence_truth_native_endian));
-		static_assert(ztd::text::validate_decodable_as(ztd::tests::u32_unicode_sequence_truth_native_endian));
 	}
 
 	void instantiate() {
